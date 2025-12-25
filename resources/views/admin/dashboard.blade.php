@@ -97,10 +97,10 @@
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <p class="font-medium text-gray-900">{{ $booking->user->name }}</p>
-                                                <p class="text-sm text-gray-600">{{ $booking->origin }} → {{ $booking->destination }}</p>
+                                                <p class="text-sm text-gray-600">{{ $booking->pickup_location }} → {{ $booking->destination }}</p>
                                             </div>
                                             <div class="text-right">
-                                                <p class="text-sm font-medium text-gray-900">{{ $booking->travel_date->format('d/m/Y') }}</p>
+                                                <p class="text-sm font-medium text-gray-900">{{ $booking->start_date->format('d/m/Y') }}</p>
                                                 <p class="text-xs text-gray-500">{{ $booking->seats_requested }} ที่นั่ง</p>
                                             </div>
                                         </div>
@@ -126,8 +126,8 @@
                                     <div class="p-3 bg-green-50 rounded-lg">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <p class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($booking->departure_time)->format('H:i') }} - {{ $booking->van->name ?? 'N/A' }}</p>
-                                                <p class="text-sm text-gray-600">{{ $booking->origin }} → {{ $booking->destination }}</p>
+                                                <p class="font-medium text-gray-900">{{ $booking->start_time }} น. - {{ $booking->van->name ?? 'N/A' }}</p>
+                                                <p class="text-sm text-gray-600">{{ $booking->pickup_location }} → {{ $booking->destination }}</p>
                                                 <p class="text-xs text-gray-500 mt-1">{{ $booking->user->name }} ({{ $booking->seats_requested }} คน)</p>
                                             </div>
                                             <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST">

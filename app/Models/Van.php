@@ -9,9 +9,25 @@ class Van extends Model
 {
     use HasFactory;
 
+    public const CAMPUS_LABELS = [
+        'huntra' => 'ศูนย์พระนครศรีอยุธยา หันตรา',
+        'wasukri' => 'ศูนย์พระนครศรีอยุธยา วาสุกรี',
+        'nonthaburi' => 'ศูนย์นนทบุรี',
+        'suphanburi' => 'ศูนย์สุพรรณบุรี',
+    ];
+
+    public const DEPARTMENT_LABELS = [
+        'gad' => 'กองกลาง',
+        'subnon' => 'กองบริหารทรัพยากรนนทบุรี',
+        'subwa' => 'กองกลาง งานบริการ ศูนย์พระนครศรีอยุธยา วาสุกรี',
+        'subsu' => 'กองบริหารทรัพยากรสุพรรณบุรี',
+    ];
+
     protected $fillable = [
         'name',
         'license_plate',
+        'campus',
+        'owner_department',
         'capacity',
         'status',
         'description',
@@ -25,7 +41,7 @@ class Van extends Model
     public function getAvailableSeats($date)
     {
         $bookedSeats = $this->bookings()
-            ->where('travel_date', $date)
+            ->where('start_date', $date)
             ->where('status', 'approved')
             ->sum('seats_requested');
         

@@ -40,26 +40,25 @@
                             <h4 class="text-sm font-medium text-gray-500 mb-3">ข้อมูลการเดินทาง</h4>
                             <dl class="space-y-2">
                                 <div class="flex">
-                                    <dt class="w-24 text-sm text-gray-500">วันที่:</dt>
-                                    <dd class="text-sm text-gray-900 font-medium">{{ $booking->travel_date->format('d/m/Y') }}</dd>
+                                    <dt class="w-28 text-sm text-gray-500">ตั้งแต่:</dt>
+                                    <dd class="text-sm text-gray-900 font-medium">{{ $booking->start_date->format('d/m/Y') }} เวลา {{ $booking->start_time }} น.</dd>
                                 </div>
                                 <div class="flex">
-                                    <dt class="w-24 text-sm text-gray-500">เวลา:</dt>
+                                    <dt class="w-28 text-sm text-gray-500">ถึง:</dt>
                                     <dd class="text-sm text-gray-900">
-                                        {{ \Carbon\Carbon::parse($booking->departure_time)->format('H:i') }}
-                                        @if($booking->return_time) - {{ \Carbon\Carbon::parse($booking->return_time)->format('H:i') }} @endif
+                                        {{ $booking->end_date ? $booking->end_date->format('d/m/Y') : '-' }} เวลา {{ $booking->end_time }} น.
                                     </dd>
                                 </div>
                                 <div class="flex">
-                                    <dt class="w-24 text-sm text-gray-500">ต้นทาง:</dt>
-                                    <dd class="text-sm text-gray-900">{{ $booking->origin }}</dd>
+                                    <dt class="w-28 text-sm text-gray-500">สถานที่รอรถ:</dt>
+                                    <dd class="text-sm text-gray-900">{{ $booking->pickup_location }}</dd>
                                 </div>
                                 <div class="flex">
-                                    <dt class="w-24 text-sm text-gray-500">ปลายทาง:</dt>
+                                    <dt class="w-28 text-sm text-gray-500">ปลายทาง:</dt>
                                     <dd class="text-sm text-gray-900">{{ $booking->destination }}</dd>
                                 </div>
                                 <div class="flex">
-                                    <dt class="w-24 text-sm text-gray-500">ที่นั่ง:</dt>
+                                    <dt class="w-28 text-sm text-gray-500">ที่นั่ง:</dt>
                                     <dd class="text-sm text-gray-900 font-medium">{{ $booking->seats_requested }} ที่นั่ง</dd>
                                 </div>
                             </dl>
@@ -104,7 +103,7 @@
                                                 <option value="">-- เลือกรถ --</option>
                                                 @foreach($vans as $van)
                                                     @php
-                                                        $available = $van->getAvailableSeats($booking->travel_date);
+                                                        $available = $van->getAvailableSeats($booking->start_date);
                                                     @endphp
                                                     <option value="{{ $van->id }}" {{ $available < $booking->seats_requested ? 'disabled' : '' }}>
                                                         {{ $van->name }} ({{ $van->license_plate }}) - ว่าง {{ $available }}/{{ $van->capacity }} ที่นั่ง
@@ -113,10 +112,25 @@
                                             </select>
                                         </div>
                                         <div class="mb-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">พนักงานขับรถ</label>
+                                            <select name="driver_id" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm">
+                                                <option value="">-- ไม่ระบุ --</option>
+                                                @foreach($drivers as $driver)
+                                                    <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            @if($drivers->isEmpty())
+                                                <p class="text-xs text-gray-500 mt-1">ยังไม่มีพนักงานขับรถในระบบ กรุณาเพิ่มในเมนูจัดการสิทธิ์</p>
+                                            @endif
+                                        </div>
+                                        <div class="mb-3">
                                             <label class="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ</label>
                                             <textarea name="admin_notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
                                         </div>
-                                        <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-green-700 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-200">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
                                             อนุมัติ
                                         </button>
                                     </form>
@@ -131,7 +145,10 @@
                                             <label class="block text-sm font-medium text-gray-700 mb-1">เหตุผล <span class="text-red-500">*</span></label>
                                             <textarea name="admin_notes" rows="4" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm" placeholder="ระบุเหตุผลที่ไม่อนุมัติ"></textarea>
                                         </div>
-                                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500" onclick="return confirm('ยืนยันการไม่อนุมัติ?')">
+                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold shadow-lg shadow-red-500/30 hover:from-red-600 hover:to-rose-700 hover:shadow-red-500/40 hover:-translate-y-0.5 transition-all duration-200" onclick="return confirm('ยืนยันการไม่อนุมัติ?')">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
                                             ไม่อนุมัติ
                                         </button>
                                     </form>
@@ -148,6 +165,9 @@
                                     <p class="text-sm"><span class="text-gray-500">เมื่อ:</span> {{ $booking->approved_at->format('d/m/Y H:i') }}</p>
                                     @if($booking->van)
                                         <p class="text-sm"><span class="text-gray-500">รถ:</span> {{ $booking->van->name }} ({{ $booking->van->license_plate }})</p>
+                                    @endif
+                                    @if($booking->driver)
+                                        <p class="text-sm"><span class="text-gray-500">พนักงานขับรถ:</span> {{ $booking->driver->name }}</p>
                                     @endif
                                     @if($booking->admin_notes)
                                         <p class="text-sm mt-2"><span class="text-gray-500">หมายเหตุ:</span> {{ $booking->admin_notes }}</p>

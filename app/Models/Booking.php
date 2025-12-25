@@ -12,13 +12,17 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'van_id',
-        'travel_date',
-        'departure_time',
-        'return_time',
+        'driver_id',
+        'start_date',
+        'start_time',
+        'end_date',
+        'end_time',
         'seats_requested',
-        'origin',
+        'pickup_location',
         'destination',
         'purpose',
+        'requested_department',
+        'attachment_path',
         'status',
         'admin_notes',
         'approved_by',
@@ -26,7 +30,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'travel_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'approved_at' => 'datetime',
     ];
 
@@ -38,6 +43,11 @@ class Booking extends Model
     public function van()
     {
         return $this->belongsTo(Van::class);
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(User::class, 'driver_id');
     }
 
     public function approver()

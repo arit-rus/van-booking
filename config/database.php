@@ -93,6 +93,20 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'hrd' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_HOST_2', '172.17.1.134'),
+            'port' => env('DB_PORT_2', '1433'),
+            'database' => env('DB_DATABASE_2', 'RMUTSB_HRD1'),
+            'username' => env('DB_USERNAME_2', 'web_hrd'),
+            'password' => env('DB_PASSWORD_2', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'encrypt' => env('DB_ENCRYPT_2', 'no'),
+            'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE_2', 'true'),
+        ],
+
     ],
 
     /*

@@ -40,6 +40,30 @@
                         </div>
 
                         <div class="mb-6">
+                            <label for="campus" class="block text-sm font-medium text-gray-700 mb-2">ศูนย์พื้นที่ <span class="text-red-500">*</span></label>
+                            <select name="campus" id="campus" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                @foreach(\App\Models\Van::CAMPUS_LABELS as $value => $label)
+                                    <option value="{{ $value }}" {{ old('campus') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('campus')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="owner_department" class="block text-sm font-medium text-gray-700 mb-2">หน่วยงานเจ้าของรถ <span class="text-red-500">*</span></label>
+                            <select name="owner_department" id="owner_department" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                @foreach(\App\Models\Van::DEPARTMENT_LABELS as $value => $label)
+                                    <option value="{{ $value }}" {{ old('owner_department') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('owner_department')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6">
                             <label for="capacity" class="block text-sm font-medium text-gray-700 mb-2">จำนวนที่นั่ง <span class="text-red-500">*</span></label>
                             <input type="number" name="capacity" id="capacity" 
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -70,11 +94,14 @@
                             @enderror
                         </div>
 
-                        <div class="flex justify-end space-x-3">
-                            <a href="{{ route('admin.vans.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <div class="flex justify-end gap-3">
+                            <a href="{{ route('admin.vans.index') }}" class="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
                                 ยกเลิก
                             </a>
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-green-700 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 บันทึก
                             </button>
                         </div>

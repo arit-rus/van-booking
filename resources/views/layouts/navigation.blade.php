@@ -25,6 +25,11 @@
                         <x-nav-link :href="route('admin.vans.index')" :active="request()->routeIs('admin.vans*')">
                             จัดการรถตู้
                         </x-nav-link>
+                        @if(Auth::user()->isSuperAdmin())
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users*')">
+                            จัดการสิทธิ์
+                        </x-nav-link>
+                        @endif
                         <span class="border-l border-gray-300 h-6 self-center mx-2"></span>
                         <x-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.index')">
                             การจองของฉัน
@@ -49,11 +54,23 @@
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div class="flex items-center">
-                                @if(Auth::user()->isAdmin())
-                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-indigo-100 rounded-full mr-2">
+                                @if(isset($navHrdPerson) && $navHrdPerson && $navHrdPerson->person_picture)
+                                    <img class="h-8 w-8 rounded-full object-cover border-2 border-gray-200 mr-2" 
+                                         src="https://hrd.rmutsb.ac.th/upload/his/person/photo/{{ $navHrdPerson->person_picture }}" 
+                                         alt="{{ Auth::user()->name }}"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <span class="hidden h-8 w-8 rounded-full bg-indigo-100 items-center justify-center mr-2">
+                                        <span class="text-sm font-medium text-indigo-600">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
+                                    </span>
+                                @elseif(Auth::user()->isAdmin())
+                                    <span class="inline-flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-full mr-2">
                                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                         </svg>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full mr-2">
+                                        <span class="text-sm font-medium text-gray-600">{{ mb_substr(Auth::user()->name, 0, 1) }}</span>
                                     </span>
                                 @endif
                                 {{ Auth::user()->name }}
@@ -111,6 +128,11 @@
                 <x-responsive-nav-link :href="route('admin.vans.index')" :active="request()->routeIs('admin.vans*')">
                     จัดการรถตู้
                 </x-responsive-nav-link>
+                @if(Auth::user()->isSuperAdmin())
+                <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users*')">
+                    จัดการสิทธิ์
+                </x-responsive-nav-link>
+                @endif
                 <div class="border-t border-gray-200 my-2"></div>
                 <x-responsive-nav-link :href="route('bookings.index')" :active="request()->routeIs('bookings.index')">
                     การจองของฉัน

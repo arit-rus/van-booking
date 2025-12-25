@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center">
-            <a href="{{ route('bookings.index') }}" class="mr-4 text-gray-500 hover:text-gray-700">
+            <a href="{{ route('bookings.index') }}" class="mr-4 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-150">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -42,21 +42,20 @@
                         <h3 class="text-lg font-medium text-gray-900 mb-4">ข้อมูลการเดินทาง</h3>
                         <dl class="grid grid-cols-2 gap-4">
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">วันที่เดินทาง</dt>
-                                <dd class="text-sm text-gray-900 mt-1">{{ $booking->travel_date->format('d/m/Y') }}</dd>
-                            </div>
-                            <div>
-                                <dt class="text-sm font-medium text-gray-500">เวลา</dt>
+                                <dt class="text-sm font-medium text-gray-500">ตั้งแต่วันที่</dt>
                                 <dd class="text-sm text-gray-900 mt-1">
-                                    {{ \Carbon\Carbon::parse($booking->departure_time)->format('H:i') }}
-                                    @if($booking->return_time)
-                                        - {{ \Carbon\Carbon::parse($booking->return_time)->format('H:i') }}
-                                    @endif
+                                    {{ $booking->start_date->format('d/m/Y') }} เวลา {{ $booking->start_time }} น.
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">ต้นทาง</dt>
-                                <dd class="text-sm text-gray-900 mt-1">{{ $booking->origin }}</dd>
+                                <dt class="text-sm font-medium text-gray-500">ถึงวันที่</dt>
+                                <dd class="text-sm text-gray-900 mt-1">
+                                    {{ $booking->end_date ? $booking->end_date->format('d/m/Y') : '-' }} เวลา {{ $booking->end_time }} น.
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">สถานที่รอรถ</dt>
+                                <dd class="text-sm text-gray-900 mt-1">{{ $booking->pickup_location }}</dd>
                             </div>
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">ปลายทาง</dt>
@@ -71,6 +70,16 @@
                                 <dd class="text-sm text-gray-900 mt-1">
                                     @if($booking->van)
                                         {{ $booking->van->name }} ({{ $booking->van->license_plate }})
+                                    @else
+                                        <span class="text-gray-400">รอการมอบหมาย</span>
+                                    @endif
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">พนักงานขับรถ</dt>
+                                <dd class="text-sm text-gray-900 mt-1">
+                                    @if($booking->driver)
+                                        {{ $booking->driver->name }}
                                     @else
                                         <span class="text-gray-400">รอการมอบหมาย</span>
                                     @endif

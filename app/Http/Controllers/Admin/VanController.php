@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Van;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VanController extends Controller
 {
@@ -13,7 +14,15 @@ class VanController extends Controller
      */
     public function index()
     {
-        $vans = Van::withCount('bookings')->paginate(10);
+        $user = Auth::user();
+        $query = Van::withCount('bookings');
+
+        // Filter by department for department admins
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            $query->where('owner_department', $user->getAdminDepartment());
+        }
+
+        $vans = $query->paginate(10);
         return view('admin.vans.index', compact('vans'));
     }
 
@@ -30,13 +39,22 @@ class VanController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'license_plate' => 'required|string|max:20|unique:vans',
+            'campus' => 'required|in:huntra,wasukri,nonthaburi,suphanburi',
+            'owner_department' => 'required|in:gad,subnon,subwa,subsu',
             'capacity' => 'required|integer|min:1|max:50',
             'status' => 'required|in:active,maintenance',
             'description' => 'nullable|string',
         ]);
+
+        // Department admins can only create vans for their department
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            $validated['owner_department'] = $user->getAdminDepartment();
+        }
 
         Van::create($validated);
 
@@ -49,6 +67,14 @@ class VanController extends Controller
      */
     public function edit(Van $van)
     {
+        // Check department access
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            if ($van->owner_department !== $user->getAdminDepartment()) {
+                abort(403, 'ไม่มีสิทธิ์แก้ไขรถของหน่วยงานอื่น');
+            }
+        }
+
         return view('admin.vans.edit', compact('van'));
     }
 
@@ -57,13 +83,28 @@ class VanController extends Controller
      */
     public function update(Request $request, Van $van)
     {
+        // Check department access
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            if ($van->owner_department !== $user->getAdminDepartment()) {
+                abort(403, 'ไม่มีสิทธิ์แก้ไขรถของหน่วยงานอื่น');
+            }
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'license_plate' => 'required|string|max:20|unique:vans,license_plate,' . $van->id,
+            'campus' => 'required|in:huntra,wasukri,nonthaburi,suphanburi',
+            'owner_department' => 'required|in:gad,subnon,subwa,subsu',
             'capacity' => 'required|integer|min:1|max:50',
             'status' => 'required|in:active,maintenance',
             'description' => 'nullable|string',
         ]);
+
+        // Department admins cannot change owner_department
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            $validated['owner_department'] = $van->owner_department;
+        }
 
         $van->update($validated);
 
@@ -76,10 +117,18 @@ class VanController extends Controller
      */
     public function destroy(Van $van)
     {
+        // Check department access
+        $user = Auth::user();
+        if (!$user->isSuperAdmin() && $user->isDepartmentAdmin()) {
+            if ($van->owner_department !== $user->getAdminDepartment()) {
+                abort(403, 'ไม่มีสิทธิ์ลบรถของหน่วยงานอื่น');
+            }
+        }
+
         // Check if van has active bookings
         $activeBookings = $van->bookings()
             ->whereIn('status', ['pending', 'approved'])
-            ->where('travel_date', '>=', today())
+            ->where('start_date', '>=', today())
             ->count();
 
         if ($activeBookings > 0) {
