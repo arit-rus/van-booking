@@ -176,7 +176,10 @@
                         <!-- Passengers Section -->
                         <div class="mb-6">
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-medium text-gray-700">รายชื่อผู้โดยสาร (ถ้ามี)</label>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">รายชื่อผู้โดยสาร (กรณีผู้ขอใช้เดินทางด้วย กรุณากรอกชื่อตนเองด้วย) <span class="text-red-500">*</span></label>
+                                    <p class="text-xs text-gray-500 mt-1">กรุณาเพิ่มรายชื่อให้ครบตามจำนวนที่นั่งที่ขอ (<span id="passengerCountDisplay" class="font-semibold text-indigo-600">0</span>/<span id="seatsDisplay" class="font-semibold">1</span> คน)</p>
+                                </div>
                                 <button type="button" id="addPassenger" class="inline-flex items-center gap-1 px-3 py-1.5 text-indigo-600 bg-indigo-50 rounded-lg font-medium hover:bg-indigo-100 transition-colors duration-150">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -187,6 +190,7 @@
                             <div id="passengersContainer" class="space-y-3">
                                 <!-- Passenger rows will be added here -->
                             </div>
+                            <p id="passengerError" class="mt-2 text-sm text-red-600 hidden"></p>
                         </div>
 
                         <!-- Submit -->
@@ -210,16 +214,36 @@
     <script>
         let passengerCount = 0;
         
+        // Update passenger count display
+        function updatePassengerCount() {
+            const container = document.getElementById('passengersContainer');
+            const rows = container.querySelectorAll('.passenger-row');
+            const filledRows = Array.from(rows).filter(row => {
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                return nameInput && nameInput.value.trim() !== '';
+            });
+            document.getElementById('passengerCountDisplay').textContent = filledRows.length;
+        }
+        
+        // Update seats display when seats_requested changes
+        document.getElementById('seats_requested').addEventListener('change', function() {
+            document.getElementById('seatsDisplay').textContent = this.value;
+        });
+        
+        // Initialize seats display
+        document.getElementById('seatsDisplay').textContent = document.getElementById('seats_requested').value;
+        
         document.getElementById('addPassenger').addEventListener('click', function() {
             const container = document.getElementById('passengersContainer');
             const row = document.createElement('div');
-            row.className = 'flex space-x-2 items-center';
+            row.className = 'flex space-x-2 items-center passenger-row';
             row.innerHTML = `
                 <input type="text" name="passengers[${passengerCount}][name]" placeholder="ชื่อ-นามสกุล" 
-                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 passenger-name"
+                    oninput="updatePassengerCount()" required>
                 <input type="text" name="passengers[${passengerCount}][department]" placeholder="หน่วยงาน" 
                     class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2">
+                <button type="button" onclick="removePassenger(this)" class="text-red-500 hover:text-red-700 px-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -227,6 +251,49 @@
             `;
             container.appendChild(row);
             passengerCount++;
+            updatePassengerCount();
+        });
+        
+        function removePassenger(button) {
+            button.parentElement.remove();
+            updatePassengerCount();
+        }
+        
+        // Form validation
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            const seatsRequested = parseInt(document.getElementById('seats_requested').value);
+            const container = document.getElementById('passengersContainer');
+            const rows = container.querySelectorAll('.passenger-row');
+            const errorElement = document.getElementById('passengerError');
+            
+            // Count passengers with filled names
+            let filledPassengers = 0;
+            rows.forEach(row => {
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                if (nameInput && nameInput.value.trim() !== '') {
+                    filledPassengers++;
+                }
+            });
+            
+            // Validation checks
+            if (filledPassengers === 0) {
+                e.preventDefault();
+                errorElement.textContent = 'กรุณาเพิ่มรายชื่อผู้โดยสารอย่างน้อย 1 คน';
+                errorElement.classList.remove('hidden');
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+            
+            if (filledPassengers !== seatsRequested) {
+                e.preventDefault();
+                errorElement.textContent = `จำนวนรายชื่อผู้โดยสาร (${filledPassengers} คน) ไม่ตรงกับจำนวนที่นั่งที่ขอ (${seatsRequested} ที่นั่ง)`;
+                errorElement.classList.remove('hidden');
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+            
+            errorElement.classList.add('hidden');
+            return true;
         });
     </script>
 </x-app-layout>

@@ -74,8 +74,13 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $booking->seats_requested }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $booking->van->name ?? '-' }}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($booking->van)
+                                            <div class="text-gray-900">{{ $booking->van->name }}</div>
+                                            <div class="text-gray-500 text-xs">{{ $booking->van->license_plate }}</div>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $booking->status_badge }}">

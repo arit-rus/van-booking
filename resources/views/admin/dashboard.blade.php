@@ -126,11 +126,16 @@
                                     <div class="p-3 bg-green-50 rounded-lg">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <p class="font-medium text-gray-900">{{ $booking->start_time }} น. - {{ $booking->van->name ?? 'N/A' }}</p>
+                                                <p class="font-medium text-gray-900">
+                                                    {{ $booking->start_time }} น. - {{ $booking->van->name ?? 'N/A' }}
+                                                    @if($booking->van)
+                                                        <span class="text-xs text-gray-500">({{ $booking->van->license_plate }})</span>
+                                                    @endif
+                                                </p>
                                                 <p class="text-sm text-gray-600">{{ $booking->pickup_location }} → {{ $booking->destination }}</p>
                                                 <p class="text-xs text-gray-500 mt-1">{{ $booking->user->name }} ({{ $booking->seats_requested }} คน)</p>
                                             </div>
-                                            <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST">
+                                            <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST" onsubmit="return confirm('ยืนยันว่าการเดินทางนี้เสร็จสิ้นแล้ว?')">
                                                 @csrf
                                                 <button type="submit" class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">
                                                     เสร็จสิ้น

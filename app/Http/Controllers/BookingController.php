@@ -7,6 +7,7 @@ use App\Models\Van;
 use App\Models\HrdPerson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BookingController extends Controller
 {
@@ -102,7 +103,60 @@ class BookingController extends Controller
         }
 
         $booking->load(['van', 'driver', 'passengers', 'approver']);
-        return view('bookings.show', compact('booking'));
+        
+        // Get fellow travelers from other approved bookings using the same van on overlapping dates
+        $fellowTravelers = collect();
+        if ($booking->van_id && $booking->status === 'approved') {
+            $otherBookings = Booking::with(['user', 'passengers'])
+                ->where('id', '!=', $booking->id)
+                ->where('van_id', $booking->van_id)
+                ->where('status', 'approved')
+                ->where('start_date', '<=', $booking->end_date)
+                ->where('end_date', '>=', $booking->start_date)
+                ->get();
+            
+            foreach ($otherBookings as $otherBooking) {
+                // Add the booking owner
+                $fellowTravelers->push([
+                    'name' => $otherBooking->user->name,
+                    'department' => $otherBooking->user->department ?? null,
+                    'is_owner' => true,
+                    'booking_destination' => $otherBooking->destination,
+                ]);
+                
+                // Add passengers from other bookings
+                foreach ($otherBooking->passengers as $passenger) {
+                    $fellowTravelers->push([
+                        'name' => $passenger->name,
+                        'department' => $passenger->department,
+                        'is_owner' => false,
+                        'booking_destination' => $otherBooking->destination,
+                    ]);
+                }
+            }
+        }
+        
+        return view('bookings.show', compact('booking', 'fellowTravelers'));
+    }
+
+    /**
+     * Download booking as PDF.
+     */
+    public function downloadPdf(Booking $booking)
+    {
+        // Ensure user can only download their own bookings
+        if ($booking->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $booking->load(['van', 'driver', 'passengers', 'approver', 'user']);
+        
+        $pdf = Pdf::loadView('bookings.pdf', compact('booking'));
+        $pdf->setPaper('a4', 'portrait');
+        
+        $filename = 'booking_' . str_pad($booking->id, 6, '0', STR_PAD_LEFT) . '.pdf';
+        
+        return $pdf->download($filename);
     }
 
     /**

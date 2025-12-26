@@ -52,4 +52,22 @@ class Van extends Model
     {
         return $this->status === 'active' && $this->getAvailableSeats($date) > 0;
     }
+
+    /**
+     * Get available seats considering date range overlap
+     * Returns the minimum available seats across the date range
+     */
+    public function getAvailableSeatsForDateRange($startDate, $endDate)
+    {
+        // Get bookings that overlap with the date range
+        $bookedSeats = $this->bookings()
+            ->where('status', 'approved')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->where('start_date', '<=', $endDate)
+                      ->where('end_date', '>=', $startDate);
+            })
+            ->sum('seats_requested');
+        
+        return $this->capacity - $bookedSeats;
+    }
 }

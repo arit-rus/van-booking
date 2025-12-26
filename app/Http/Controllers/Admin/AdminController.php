@@ -42,7 +42,8 @@ class AdminController extends Controller
 
         $todayBookings = (clone $bookingsQuery)->with(['user', 'van'])
             ->where('status', 'approved')
-            ->whereDate('start_date', today())
+            ->where('start_date', '<=', today())
+            ->where('end_date', '>=', today())
             ->orderBy('start_time')
             ->get();
 
@@ -104,7 +105,22 @@ class AdminController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.bookings.show', compact('booking', 'vans', 'drivers'));
+        // Get conflicting bookings (approved bookings with overlapping date range in the same department)
+        $conflictingBookings = Booking::with(['van', 'user', 'driver'])
+            ->where('id', '!=', $booking->id)
+            ->where('status', 'approved')
+            ->where('requested_department', $requestedDept)
+            ->where(function ($query) use ($booking) {
+                // Check for date range overlap
+                $query->where(function ($q) use ($booking) {
+                    $q->where('start_date', '<=', $booking->end_date)
+                      ->where('end_date', '>=', $booking->start_date);
+                });
+            })
+            ->orderBy('start_date')
+            ->get();
+
+        return view('admin.bookings.show', compact('booking', 'vans', 'drivers', 'conflictingBookings'));
     }
 
     /**

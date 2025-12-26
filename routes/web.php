@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
 
     // Booking Routes
     Route::resource('bookings', BookingController::class)->except(['edit', 'update']);
+    Route::get('bookings/{booking}/pdf', [BookingController::class, 'downloadPdf'])->name('bookings.pdf');
 });
 
 // Admin Routes
